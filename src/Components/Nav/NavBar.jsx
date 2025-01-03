@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -9,9 +9,17 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate } from "react-router-dom";
+import MyContext from "../../Context/MyContext";
+import { Hidden, useMediaQuery } from "@mui/material";
+import AddIcon from '@mui/icons-material/Add'; // New Buyer Icon
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const navigate = useNavigate();
+  const { setLogged } = useContext(MyContext);
+  
+  // Responsive query for screen sizes
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -28,20 +36,35 @@ const Navbar = () => {
 
   const handleLogout = () => {
     console.log("Logging out...");
+    setLogged(false);
+    navigate('/login');
     handleMenuClose();
   };
-  const navigate=useNavigate();
+
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Toolbar>
+          {/* Title on larger screens */}
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             MO GHARA
           </Typography>
-          {/* New Buyer Button */}
-          <Button color="inherit" onClick={() => navigate('/Product-type')}>
-            New Buyer
-          </Button>
+
+          {/* New Buyer Button with Icon for mobile and text for larger screens */}
+          <Hidden smDown>
+            <Button color="inherit" onClick={() => navigate('/Product-type')}>
+              New Buyer
+            </Button>
+          </Hidden>
+          <Hidden mdUp>
+            <IconButton
+              color="inherit"
+              onClick={() => navigate('/Product-type')}
+            >
+              <AddIcon />
+            </IconButton>
+          </Hidden>
+
           {/* Menu Icon */}
           <IconButton
             size="large"
@@ -52,6 +75,7 @@ const Navbar = () => {
           >
             <MoreVertIcon />
           </IconButton>
+
           {/* Dropdown Menu */}
           <Menu
             anchorEl={anchorEl}
@@ -61,7 +85,7 @@ const Navbar = () => {
               "aria-labelledby": "menu-button",
             }}
           >
-            <MenuItem onClick={handleSettings}>Settings</MenuItem>
+            <MenuItem onClick={handleSettings}>Settings (Coming soon!)</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </Toolbar>
