@@ -1,98 +1,173 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import headerImg from '../../assets/Header.png'
-import MyContext from '../../Context/MyContext';
+import { Mail, Globe, Phone, MapPin } from 'lucide-react';
+import logo from '../../assets/Header.png'
 const Receipt = ({ customerName, products }) => {
-
-
-
   useEffect(() => {
-    if (headerImg) {
-      const element = document.getElementById('receipt');
-      const opt = {
-        margin: 1,
-        filename: `receipt-${customerName}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-      
-      html2pdf().set(opt).from(element).save();
-    }
-  }, [headerImg, customerName]);
+    const element = document.getElementById('receipt');
+    const opt = {
+      margin: 10,
+      filename: `receipt-${customerName}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+  }, [customerName]);
 
-  if (!headerImg) return null;
+  const styles = {
+    receipt: {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '14px',
+      lineHeight: '1.5',
+      maxWidth: '800px',
+      margin: '0 auto',
+      padding: '32px',
+      backgroundColor: '#ffffff',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      borderRadius: '8px',
+    },
+    header: {
+      textAlign: 'center',
+      marginBottom: '24px',
+    },
+    logo: {
+      maxWidth: '100%',
+      height: 'auto',
+      marginBottom: '16px',
+    },
+    title: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#333333',
+      marginBottom: '8px',
+    },
+    divider: {
+      borderTop: '1px solid #e0e0e0',
+      margin: '24px 0',
+    },
+    customerInfo: {
+      marginBottom: '24px',
+    },
+    customerName: {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      color: '#333333',
+      marginBottom: '4px',
+    },
+    date: {
+      fontSize: '14px',
+      color: '#666666',
+    },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      marginBottom: '24px',
+    },
+    tableHeader: {
+      backgroundColor: '#f8f8f8',
+      fontWeight: 'bold',
+      color: '#333333',
+      textAlign: 'left',
+      padding: '12px',
+      borderBottom: '2px solid #e0e0e0',
+    },
+    tableCell: {
+      padding: '12px',
+      borderBottom: '1px solid #e0e0e0',
+      color: '#333333',
+    },
+    footer: {
+      textAlign: 'center',
+      color: '#666666',
+      fontSize: '14px',
+    },
+    contactInfo: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: '8px',
+    },
+    icon: {
+      marginRight: '8px',
+    },
+    links: {
+      display: 'flex',
+      justifyContent: 'center',
+      marginTop: '16px',
+    },
+    link: {
+      color: '#0066cc',
+      textDecoration: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      marginRight: '16px',
+    },
+  };
 
   return (
-    <div id="receipt" style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+    <div id="receipt" style={styles.receipt}>
+      <div style={styles.header}>
         <img 
-          src={headerImg}
-          alt="Header" 
-          style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+          src={logo}
+          alt="Company Logo" 
+          style={styles.logo}
         />
+        <h1 style={styles.title}>Receipt</h1>
       </div>
       
-      {/* Rest of the component remains the same */}
-      <div style={{ borderTop: '1px solid #dddddd', marginBottom: '20px' }}></div>
+      <div style={styles.divider}></div>
       
-      <h1 style={{ fontSize: '19px', fontWeight: 700 }}>Customer Name: {customerName}</h1>
+      <div style={styles.customerInfo}>
+        <h2 style={styles.customerName}>Customer: {customerName}</h2>
+        <p style={styles.date}>Date: {new Date().toLocaleDateString()}</p>
+      </div>
       
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-        <thead style={{ backgroundColor: '#f2f2f2' }}>
+      <table style={styles.table}>
+        <thead>
           <tr>
-            <th style={tableHeaderStyle}>S. No</th>
-            <th style={tableHeaderStyle}>Description</th>
-            <th style={tableHeaderStyle}>Quantity</th>
+            <th style={styles.tableHeader}>S. No</th>
+            <th style={styles.tableHeader}>Description</th>
+            <th style={styles.tableHeader}>Quantity</th>
           </tr>
         </thead>
         <tbody>
           {products.map((product, index) => (
             <tr key={product.id}>
-              <td style={tableCellStyle}>{index + 1}</td>
-              <td style={tableCellStyle}>{product.description}</td>
-              <td style={tableCellStyle}>{product.quantity}</td>
+              <td style={styles.tableCell}>{index + 1}</td>
+              <td style={styles.tableCell}>{product.description}</td>
+              <td style={styles.tableCell}>{product.quantity}</td>
             </tr>
           ))}
         </tbody>
       </table>
       
-      <div style={{ borderTop: '1px solid #dddddd', margin: '20px 0' }}></div>
+      <div style={styles.divider}></div>
       
-      <div style={{ textAlign: 'center', fontSize: '12px', fontFamily: '"Droid Serif", Georgia, Times, serif' }}>
-        <p style={{ margin: '5px 0' }}><strong>For any queries Call: 8658899497, 9437884397, Whatsapp: 918752352</strong></p>
-        <p style={{ margin: '5px 0' }}><strong>Address: Lucky Complex, 1st floor, Panikolli, Jajpur, Odisha. (755043)</strong></p>
-      </div>
-      
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <a href="mailto:mogharaservies@gmail.com" style={socialLinkStyle}>
-          <img src="https://app-rsrc.getbee.io/public/resources/social-networks-icon-sets/circle-dark-gray/mail@2x.png" alt="Email" width={32} height={32} />
-        </a>
-        <a href="https://moghara.com" target="_blank" rel="noopener noreferrer" style={socialLinkStyle}>
-          <img src="https://app-rsrc.getbee.io/public/resources/social-networks-icon-sets/circle-dark-gray/website@2x.png" alt="Website" width={32} height={32} />
-        </a>
+      <div style={styles.footer}>
+        <div style={styles.contactInfo}>
+          <Phone style={styles.icon} size={16} />
+          <span>Call: 8658899497, 9437884397 | WhatsApp: 918752352</span>
+        </div>
+        <div style={styles.contactInfo}>
+          <MapPin style={styles.icon} size={16} />
+          <span>Lucky Complex, 1st floor, Panikolli, Jajpur, Odisha. (755043)</span>
+        </div>
+        <div style={styles.links}>
+          <a href="mailto:mogharaservies@gmail.com" style={styles.link}>
+            <Mail style={styles.icon} size={16} />
+            mogharaservies@gmail.com
+          </a>
+          <a href="https://moghara.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
+            <Globe style={styles.icon} size={16} />
+            moghara.com
+          </a>
+        </div>
       </div>
     </div>
   );
 };
 
-const tableHeaderStyle = {
-  padding: '10px',
-  border: '1px solid #dddddd',
-  textAlign: 'center',
-  fontWeight: 700,
-};
-
-const tableCellStyle = {
-  padding: '10px',
-  border: '1px solid #dddddd',
-  textAlign: 'center',
-};
-
-const socialLinkStyle = {
-  display: 'inline-block',
-  margin: '0 10px',
-  textDecoration: 'none',
-};
-
 export default Receipt;
+
