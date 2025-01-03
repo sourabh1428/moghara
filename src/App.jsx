@@ -6,6 +6,7 @@ import Products from "./Components/Products/Products";
 import Receipt from "./Components/Reciept/Reciept";
 import LoginPage from "./Auth/LoginPage";
 import MyContext from "./Context/MyContext";
+import Me from "./Me";
 
 function App() {
   const {logged}=useContext(MyContext);
@@ -15,13 +16,16 @@ function App() {
     { id: "2", description: "Product B", quantity: 1 },
     { id: "3", description: "Product C", quantity: 3 },
   ];
-
   return (
     <div>
       {/* Navbar appears only if the user is logged in */}
       {logged && <Navbar />}
 
       <Routes>
+      <Route
+          path="/"
+          element={<Me/>}
+        />
         <Route
           path="/Product-Type"
           element={<ProductType />}
