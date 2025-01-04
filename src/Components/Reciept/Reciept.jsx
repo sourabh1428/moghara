@@ -114,7 +114,7 @@ const Receipt = ({ customerName, products }) => {
           alt="Company Logo" 
           style={styles.logo}
         />
-        <h1 style={styles.title}>Receipt</h1>
+        <h1 style={styles.title}>Material List</h1>
       </div>
       
       <div style={styles.divider}></div>

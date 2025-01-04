@@ -7,9 +7,9 @@ const MyProvider = ({ children }) => {
     const [userName, setUserName] = useState("");
     const [customerName, setCustomerName] = useState('');
     const [logged, setLogged] = useState(false);
-  
+    const{supabaseUser,setSupabaseUser}=useState(null)  
     return (
-      <MyContext.Provider value={{ setLogged,logged,userName, setUserName, customerName,setCustomerName }}>
+      <MyContext.Provider value={{ supabaseUser,setSupabaseUser,setLogged,logged,userName, setUserName, customerName,setCustomerName }}>
         {children}
       </MyContext.Provider>
     );

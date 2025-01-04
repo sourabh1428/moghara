@@ -7,7 +7,7 @@ import Receipt from "./Components/Reciept/Reciept";
 import LoginPage from "./Auth/LoginPage";
 import MyContext from "./Context/MyContext";
 import Me from "./Me";
-
+import Settings from './Components/Settings/Settings';
 function App() {
   const {logged}=useContext(MyContext);
 
@@ -38,6 +38,10 @@ function App() {
         <Route
           path="/login"
           element={<LoginPage/>}
+        />
+           <Route
+          path="/settings"
+          element={<Settings/>}
         />
       </Routes>
     </div>

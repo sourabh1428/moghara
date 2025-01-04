@@ -12,11 +12,12 @@ import { useNavigate } from "react-router-dom";
 import MyContext from "../../Context/MyContext";
 import { Hidden, useMediaQuery } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add'; // New Buyer Icon
+import { Settings } from "lucide-react";
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
-  const { setLogged } = useContext(MyContext);
+  const { setLogged ,logged,userName} = useContext(MyContext);
   
   // Responsive query for screen sizes
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
@@ -30,6 +31,7 @@ const Navbar = () => {
   };
 
   const handleSettings = () => {
+    navigate('/settings');
     console.log("Navigating to Settings...");
     handleMenuClose();
   };
@@ -85,7 +87,7 @@ const Navbar = () => {
               "aria-labelledby": "menu-button",
             }}
           >
-            <MenuItem onClick={handleSettings}>Settings (Coming soon!)</MenuItem>
+            {logged && userName==='admin@gmail.com' &&<MenuItem onClick={handleSettings}>Settings </MenuItem>}
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </Toolbar>

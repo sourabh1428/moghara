@@ -53,6 +53,8 @@ const LoginPage = () => {
 const  navigate=useNavigate();
 const{userName,setUserName}=useContext(MyContext)
 const{setLogged}=useContext(MyContext);
+const{supabaseUser,setSupabaseUser }=useContext(MyContext);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null); // Clear previous errors
@@ -67,8 +69,10 @@ const{setLogged}=useContext(MyContext);
       console.log("Sign-in successful!", data);
       if(data.user.aud==="authenticated"){
         setUserName(email);
+        
         setLogged(true)
         navigate('/Product-Type');
+        
       }
     } catch (error) {
       setError(error.message); // Display error message
