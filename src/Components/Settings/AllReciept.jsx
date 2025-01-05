@@ -165,7 +165,7 @@ const AllReceipt = () => {
                 ),
               }}
             />
-            <FormControl sx={{ minWidth: 200 }}>
+            <FormControl sx={{ fontSize: '0.875rem', padding: '4px 8px' }}>
               <InputLabel>Sort by Date</InputLabel>
               <Select
                 value={sortOrder}
@@ -177,8 +177,8 @@ const AllReceipt = () => {
                   </InputAdornment>
                 }
               >
-                <MenuItem value="newest">Newest First</MenuItem>
-                <MenuItem value="oldest">Oldest First</MenuItem>
+                <MenuItem value="newest"sx={{ fontSize: '0.875rem', padding: '4px 8px' }}>Newest First</MenuItem>
+                <MenuItem value="oldest"sx={{ fontSize: '0.875rem', padding: '4px 8px' }}>Oldest First</MenuItem>
               </Select>
             </FormControl>
           </Box>
