@@ -119,23 +119,36 @@ const{userName}=useContext(MyContext);
   const handleCheckOut  = () => {
     const products = cart.map(item => ({
       id: item.id,
-      description: `${item.product_type} - ${item.product_name}`,
-      quantity: item.quantity
+      description: `${item.product_name}`,
+      quantity: item.quantity,
     }));
   
     // Create and mount Receipt component directly
     const receiptDiv = document.createElement('div');
     receiptDiv.style.display = 'none';
     document.body.appendChild(receiptDiv);
-  
+    console.log("selected cat",selectedCategory);
+    if(selectedCategory ==='Plumber'){
+      const root = createRoot(receiptDiv);
+        root.render(
+          <Receipt 
+            customerName={customerName} 
+            products={products} 
+            type={'Plumbing'}
+          />
+        );
+    }else{
+      const root = createRoot(receiptDiv);
+      root.render(
+        <Receipt 
+          customerName={customerName} 
+          products={products} 
+          type={selectedCategory}
+        />
+      );
+    }
     // Create React element and render using createRoot
-    const root = createRoot(receiptDiv);
-    root.render(
-      <Receipt 
-        customerName={customerName} 
-        products={products} 
-      />
-    );
+    
   
     // Cleanup after PDF generation
     setTimeout(() => {

@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import MyContext from '../../Context/MyContext'; // Ensure your context is imported correctly
 import { useNavigate } from 'react-router-dom';
+import AddProduct from './AddProduct';
+import ProductManagement from './ProductManagemet.jsx/ProductManagement';
 
 const AllReceipts = () => {
   return (
@@ -55,11 +57,13 @@ const Settings = () => {
           >
             <Tab label="All Receipts" />
             <Tab label="Team Management" />
+            <Tab label="Product Management" />
           </Tabs>
 
           <Box sx={{ marginTop: 2 }}>
             {activeTab === 0 && <AllReceipts />}
             {activeTab === 1 && <Team />}
+            {activeTab === 2 && <ProductManagement />}
           </Box>
         </CardContent>
       </Card>

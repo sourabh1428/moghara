@@ -1,8 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import html2pdf from 'html2pdf.js';
 import { Mail, Globe, Phone, MapPin } from 'lucide-react';
 import logo from '../../assets/Header.png'
-const Receipt = ({ customerName, products }) => {
+import { BorderLeft, BorderRight } from '@mui/icons-material';
+import  WhatsApp from '../../assets/whatsapp.svg'
+
+
+const Receipt = ({ customerName, products ,type }) => {
+  const[cat,setCat]=useState('');
   useEffect(() => {
     const element = document.getElementById('receipt');
     const opt = {
@@ -34,8 +39,7 @@ const Receipt = ({ customerName, products }) => {
     },
     logo: {
       maxWidth: '100%',
-      height: 'auto',
-      marginBottom: '16px',
+     marginTop:'-50px'
     },
     title: {
       fontSize: '24px',
@@ -43,8 +47,12 @@ const Receipt = ({ customerName, products }) => {
       color: '#333333',
       marginBottom: '8px',
     },
+    dividerMain:{
+      borderTop: '8px solid rgb(94, 94, 94)',
+      margin: '30px ',
+    },
     divider: {
-      borderTop: '1px solid #e0e0e0',
+      borderTop: '1px solid rgb(0, 0, 0)',
       margin: '24px 0',
     },
     customerInfo: {
@@ -53,7 +61,7 @@ const Receipt = ({ customerName, products }) => {
     customerName: {
       fontSize: '18px',
       fontWeight: 'bold',
-      color: '#333333',
+      color: 'red',
       marginBottom: '4px',
     },
     date: {
@@ -64,18 +72,24 @@ const Receipt = ({ customerName, products }) => {
       width: '100%',
       borderCollapse: 'collapse',
       marginBottom: '24px',
+      borderLeft:"2px solid black",
+      borderTop:"2px solid black",
+      borderRight: '2px solid rgb(0, 0, 0)', // Adds right border for vertical rows
     },
     tableHeader: {
       backgroundColor: '#f8f8f8',
       fontWeight: 'bold',
-      color: '#333333',
+      color: 'skyblue',
       textAlign: 'left',
       padding: '12px',
-      borderBottom: '2px solid #e0e0e0',
+      borderLeft:"2px solid black",
+      borderRight: '2px solid rgb(0, 0, 0)', // Adds right border for vertical rows
+      borderBottom: '2px solid rgb(0, 0, 0)',
     },
     tableCell: {
       padding: '12px',
-      borderBottom: '1px solid #e0e0e0',
+      borderRight: '1px solid rgb(0, 0, 0)', // Adds right border for vertical rows
+      borderBottom: '1px solid rgb(0, 0, 0)', // Adds bottom border for table cells
       color: '#333333',
     },
     footer: {
@@ -104,6 +118,18 @@ const Receipt = ({ customerName, products }) => {
       alignItems: 'center',
       marginRight: '16px',
     },
+    whataspp:{
+      marginLeft:'10px',
+      height:'20px',
+      width:'20px',
+      fill:'#4caf50'
+    },
+    spann:{
+      display: 'flex',
+      align: 'center',
+      gap:'10px'
+
+    }
   };
 
   return (
@@ -114,7 +140,8 @@ const Receipt = ({ customerName, products }) => {
           alt="Company Logo" 
           style={styles.logo}
         />
-        <h1 style={styles.title}>Material List</h1>
+         <div style={styles.dividerMain}></div>
+        <h1 style={styles.title}>{type}</h1>
       </div>
       
       <div style={styles.divider}></div>
@@ -130,6 +157,7 @@ const Receipt = ({ customerName, products }) => {
             <th style={styles.tableHeader}>S. No</th>
             <th style={styles.tableHeader}>Description</th>
             <th style={styles.tableHeader}>Quantity</th>
+            <th style={styles.tableHeader}>Price</th>  
           </tr>
         </thead>
         <tbody>
@@ -138,6 +166,7 @@ const Receipt = ({ customerName, products }) => {
               <td style={styles.tableCell}>{index + 1}</td>
               <td style={styles.tableCell}>{product.description}</td>
               <td style={styles.tableCell}>{product.quantity}</td>
+              <td style={styles.tableCell}></td>
             </tr>
           ))}
         </tbody>
@@ -148,7 +177,7 @@ const Receipt = ({ customerName, products }) => {
       <div style={styles.footer}>
         <div style={styles.contactInfo}>
           <Phone style={styles.icon} size={16} />
-          <span>Call: 8658899497, 9437884397 | WhatsApp: 918752352</span>
+          <span style={styles.spann}>Call: 8658899497, 9437884397 | <img style={styles.whataspp} src={WhatsApp}/>: 918752352</span>
         </div>
         <div style={styles.contactInfo}>
           <MapPin style={styles.icon} size={16} />

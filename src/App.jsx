@@ -33,7 +33,7 @@ function App() {
         <Route path="/Products" element={<Products />} />
         <Route
           path="/Receipt"
-          element={<Receipt customerName="John Doe" products={sampleProducts} />}
+          element={<Receipt customerName="John Doe" products={sampleProducts} type={'Plumber'} />}
         />
         <Route
           path="/login"
