@@ -4,22 +4,52 @@ import { Mail, Globe, Phone, MapPin } from 'lucide-react';
 import logo from '../../assets/Header.png'
 import { BorderLeft, BorderRight } from '@mui/icons-material';
 import  WhatsApp from '../../assets/whatsapp.svg'
+import { supabase } from '../../Supabase';
 
 
 const Receipt = ({ customerName, products ,type }) => {
   const[cat,setCat]=useState('');
+
+
   useEffect(() => {
-    const element = document.getElementById('receipt');
-    const opt = {
-      margin: 10,
-      filename: `receipt-${customerName}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    const generateAndUploadPDF = async () => {
+      const element = document.getElementById('receipt');
+      const opt = {
+        margin: 10,
+        filename: `receipt-${customerName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+  
+      // Generate the PDF as a Blob
+      const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
+  
+      // Trigger the download
+      const pdfUrl = URL.createObjectURL(pdfBlob); // Create a URL for the blob
+      const link = document.createElement('a'); // Create a link element
+      link.href = pdfUrl; // Set the link to the PDF Blob URL
+      link.download = `receipt-${customerName}.pdf`; // Set the filename
+      link.click(); // Simulate a click to start the download
+  
+      // Upload the PDF to Supabase
+      const fileName = `receipts/receipt-${customerName}-${Date.now()}.pdf`;
+      const { data, error } = await supabase.storage
+        .from('receipts') // Replace with your Supabase bucket name
+        .upload(fileName, pdfBlob, {
+          contentType: 'application/pdf',
+        });
+  
+      if (error) {
+        console.error('Error uploading PDF to Supabase:', error.message);
+      } else {
+        console.log('PDF uploaded successfully:', data);
+      }
     };
-    
-    html2pdf().set(opt).from(element).save();
+  
+    generateAndUploadPDF();
   }, [customerName]);
+
 
   const styles = {
     receipt: {
@@ -82,7 +112,7 @@ const Receipt = ({ customerName, products ,type }) => {
       color: 'skyblue',
       textAlign: 'left',
       padding: '12px',
-      borderLeft:"2px solid black",
+      
       borderRight: '2px solid rgb(0, 0, 0)', // Adds right border for vertical rows
       borderBottom: '2px solid rgb(0, 0, 0)',
     },

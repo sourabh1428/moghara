@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../Supabase';
+import ReactDOM from 'react-dom/client'; // For React 18+
+
 import {
   Box,
   Container,
@@ -116,46 +118,47 @@ const{userName}=useContext(MyContext);
     }
     getProductsForCategories(category);
   };
-  const handleCheckOut  = () => {
-    const products = cart.map(item => ({
-      id: item.id,
-      description: `${item.product_name}`,
-      quantity: item.quantity,
-    }));
-  
-    // Create and mount Receipt component directly
-    const receiptDiv = document.createElement('div');
-    receiptDiv.style.display = 'none';
-    document.body.appendChild(receiptDiv);
-    console.log("selected cat",selectedCategory);
-    if(selectedCategory ==='Plumber'){
-      const root = createRoot(receiptDiv);
-        root.render(
-          <Receipt 
-            customerName={customerName} 
-            products={products} 
-            type={'Plumbing'}
-          />
-        );
-    }else{
-      const root = createRoot(receiptDiv);
-      root.render(
-        <Receipt 
-          customerName={customerName} 
-          products={products} 
-          type={selectedCategory}
-        />
-      );
-    }
-    // Create React element and render using createRoot
-    
-  
-    // Cleanup after PDF generation
-    setTimeout(() => {
-      root.unmount();
-      document.body.removeChild(receiptDiv);
-    }, 2000);
-  };
+
+
+const handleCheckOut = () => {
+  const products = cart.map(item => ({
+    id: item.id,
+    description: `${item.product_name}`,
+    quantity: item.quantity,
+  }));
+
+  // Create and mount Receipt component directly
+  const receiptDiv = document.createElement('div');
+  receiptDiv.style.display = 'none';
+  document.body.appendChild(receiptDiv);
+  console.log("selected category", selectedCategory);
+
+  const root = createRoot(receiptDiv); // Create a root using React 18 API
+
+  if (selectedCategory === 'Plumber') {
+    root.render(
+      <Receipt 
+        customerName={customerName} 
+        products={products} 
+        type={'Plumbing'}
+      />
+    );
+  } else {
+    root.render(
+      <Receipt 
+        customerName={customerName} 
+        products={products} 
+        type={selectedCategory}
+      />
+    );
+  }
+
+  // Cleanup after PDF generation
+  setTimeout(() => {
+    root.unmount(); // Correct way to unmount the root in React 18
+    document.body.removeChild(receiptDiv); // Remove the receiptDiv from the body
+  }, 4000);
+};
 
   useEffect(() => {
     const filtered = products.filter(product =>

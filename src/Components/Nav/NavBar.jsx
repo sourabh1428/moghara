@@ -1,26 +1,29 @@
 import React, { useContext, useState } from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Button from "@mui/material/Button";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  Button,
+  useMediaQuery,
+  useTheme,
+  Avatar,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import { useNavigate } from "react-router-dom";
 import MyContext from "../../Context/MyContext";
-import { Hidden, useMediaQuery } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add'; // New Buyer Icon
-import { Settings } from "lucide-react";
+import NavbarMenuItems from "./NavBarMenuItems";
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
-  const { setLogged ,logged,userName} = useContext(MyContext);
-  
-  // Responsive query for screen sizes
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+  const { setLogged, logged, userName } = useContext(MyContext);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -31,52 +34,69 @@ const Navbar = () => {
   };
 
   const handleSettings = () => {
-    navigate('/settings');
-    console.log("Navigating to Settings...");
+    navigate("/settings");
     handleMenuClose();
   };
 
   const handleLogout = () => {
-    console.log("Logging out...");
     setLogged(false);
-    navigate('/login');
+    navigate("/login");
     handleMenuClose();
   };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="fixed">
-        <Toolbar>
-          {/* Title on larger screens */}
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+      <AppBar position="fixed" elevation={0}>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          {/* App Title */}
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
             MO GHARA
           </Typography>
 
-          {/* New Buyer Button with Icon for mobile and text for larger screens */}
-          <Hidden smDown>
-            <Button color="inherit" onClick={() => navigate('/Product-type')}>
-              New Buyer
-            </Button>
-          </Hidden>
-          <Hidden mdUp>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* New Buyer Button/Icon */}
+            {isMobile ? (
+              <IconButton 
+                color="inherit" 
+                onClick={() => navigate("/Product-type")}
+                sx={{ mr: 1 }}
+              >
+                <AddIcon />
+              </IconButton>
+            ) : (
+              <Button 
+                color="inherit" 
+                onClick={() => navigate("/Product-type")}
+                sx={{ 
+                  mr: 2,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  },
+                  transition: 'background-color 0.3s',
+                }}
+              >
+                New Buyer
+              </Button>
+            )}
+
+            {/* User Menu */}
             <IconButton
               color="inherit"
-              onClick={() => navigate('/Product-type')}
+              onClick={handleMenuOpen}
+              sx={{
+                p: 0.5,
+                border: `2px solid ${theme.palette.primary.contrastText}`,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                },
+                transition: 'background-color 0.3s',
+              }}
             >
-              <AddIcon />
+              <Avatar sx={{ bgcolor: theme.palette.secondary.main }}>
+                <AccountCircleRoundedIcon />
+              </Avatar>
             </IconButton>
-          </Hidden>
-
-          {/* Menu Icon */}
-          <IconButton
-            size="large"
-            edge="end"
-            color="inherit"
-            aria-label="menu"
-            onClick={handleMenuOpen}
-          >
-            <MoreVertIcon />
-          </IconButton>
+          </Box>
 
           {/* Dropdown Menu */}
           <Menu
@@ -84,11 +104,23 @@ const Navbar = () => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
             MenuListProps={{
-              "aria-labelledby": "menu-button",
+              "aria-labelledby": "user-menu-button",
+            }}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
             }}
           >
-            {logged && userName==='admin@gmail.com' &&<MenuItem onClick={handleSettings}>Settings </MenuItem>}
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            <NavbarMenuItems
+              logged={logged}
+              userName={userName}
+              handleSettings={handleSettings}
+              handleLogout={handleLogout}
+            />
           </Menu>
         </Toolbar>
       </AppBar>
@@ -97,3 +129,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
