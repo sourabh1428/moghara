@@ -1,19 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import html2pdf from 'html2pdf.js';
 import { Mail, Globe, Phone, MapPin } from 'lucide-react';
-import logo from '../../assets/Header.png'
-import { BorderLeft, BorderRight } from '@mui/icons-material';
-import  WhatsApp from '../../assets/whatsapp.svg'
+import logo from '../../assets/Header.png';
+import WhatsApp from '../../assets/whatsapp.svg';
 import { supabase } from '../../Supabase';
+import MyContext from '../../Context/MyContext';
 
+const Receipt = ({ customerName, products, type }) => {
+  const [cat, setCat] = useState('');
+  // Add error handling for context
+  const contextValue = useContext(MyContext);
+  const userName = contextValue?.userName || 'Admin';
 
-const Receipt = ({ customerName, products ,type }) => {
-  const[cat,setCat]=useState('');
-
-
-  useEffect(() => {
-    const generateAndUploadPDF = async () => {
+  const generateAndUploadPDF = async () => {
+    try {
       const element = document.getElementById('receipt');
+      if (!element) {
+        console.error('Receipt element not found');
+        return;
+      }
+
       const opt = {
         margin: 10,
         filename: `receipt-${customerName}.pdf`,
@@ -21,35 +27,66 @@ const Receipt = ({ customerName, products ,type }) => {
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
-  
-      // Generate the PDF as a Blob
+
       const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-  
-      // Trigger the download
-      const pdfUrl = URL.createObjectURL(pdfBlob); // Create a URL for the blob
-      const link = document.createElement('a'); // Create a link element
-      link.href = pdfUrl; // Set the link to the PDF Blob URL
-      link.download = `receipt-${customerName}.pdf`; // Set the filename
-      link.click(); // Simulate a click to start the download
-  
+
+      // Trigger download
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `receipt-${customerName}.pdf`;
+      link.click();
+
       // Upload the PDF to Supabase
-      const fileName = `receipts/receipt-${customerName}-${Date.now()}.pdf`;
+      const fileName = `receipt-${customerName}-${Date.now()}.pdf`;
       const { data, error } = await supabase.storage
-        .from('receipts') // Replace with your Supabase bucket name
+        .from('reciepts')
         .upload(fileName, pdfBlob, {
           contentType: 'application/pdf',
         });
-  
+
       if (error) {
         console.error('Error uploading PDF to Supabase:', error.message);
-      } else {
-        console.log('PDF uploaded successfully:', data);
+        return;
       }
-    };
-  
-    generateAndUploadPDF();
-  }, [customerName]);
 
+      const response = await supabase.storage
+        .from('reciepts')
+        .getPublicUrl(data.path);
+
+      await insertIntoTable(response.data.publicUrl);
+      
+      URL.revokeObjectURL(pdfUrl); // Clean up
+    } catch (error) {
+      console.error('Error generating/uploading PDF:', error);
+    }
+  };
+
+  const insertIntoTable = async (publicUrl) => {
+    try {
+      const { data, error } = await supabase
+        .from('Receipts')
+        .insert([
+          { 
+            Customer: customerName, 
+            Createdby: userName,
+            url: publicUrl 
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+      console.log("inserted to table: ", data);
+    } catch (error) {
+      console.error("Error inserting into table:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (customerName) {
+      generateAndUploadPDF();
+    }
+  }, [customerName]);
 
   const styles = {
     receipt: {
@@ -69,7 +106,7 @@ const Receipt = ({ customerName, products ,type }) => {
     },
     logo: {
       maxWidth: '100%',
-     marginTop:'-50px'
+      marginTop: '-50px'
     },
     title: {
       fontSize: '24px',
@@ -77,9 +114,9 @@ const Receipt = ({ customerName, products ,type }) => {
       color: '#333333',
       marginBottom: '8px',
     },
-    dividerMain:{
+    dividerMain: {
       borderTop: '8px solid rgb(94, 94, 94)',
-      margin: '30px ',
+      margin: '30px',
     },
     divider: {
       borderTop: '1px solid rgb(0, 0, 0)',
@@ -102,9 +139,9 @@ const Receipt = ({ customerName, products ,type }) => {
       width: '100%',
       borderCollapse: 'collapse',
       marginBottom: '24px',
-      borderLeft:"2px solid black",
-      borderTop:"2px solid black",
-      borderRight: '2px solid rgb(0, 0, 0)', // Adds right border for vertical rows
+      borderLeft: "2px solid black",
+      borderTop: "2px solid black",
+      borderRight: '2px solid rgb(0, 0, 0)',
     },
     tableHeader: {
       backgroundColor: '#f8f8f8',
@@ -112,14 +149,13 @@ const Receipt = ({ customerName, products ,type }) => {
       color: 'skyblue',
       textAlign: 'left',
       padding: '12px',
-      
-      borderRight: '2px solid rgb(0, 0, 0)', // Adds right border for vertical rows
+      borderRight: '2px solid rgb(0, 0, 0)',
       borderBottom: '2px solid rgb(0, 0, 0)',
     },
     tableCell: {
       padding: '12px',
-      borderRight: '1px solid rgb(0, 0, 0)', // Adds right border for vertical rows
-      borderBottom: '1px solid rgb(0, 0, 0)', // Adds bottom border for table cells
+      borderRight: '1px solid rgb(0, 0, 0)',
+      borderBottom: '1px solid rgb(0, 0, 0)',
       color: '#333333',
     },
     footer: {
@@ -148,51 +184,50 @@ const Receipt = ({ customerName, products ,type }) => {
       alignItems: 'center',
       marginRight: '16px',
     },
-    whataspp:{
-      marginLeft:'10px',
-      height:'20px',
-      width:'20px',
-      fill:'#4caf50'
+    whataspp: {
+      marginLeft: '10px',
+      height: '20px',
+      width: '20px',
+      fill: '#4caf50'
     },
-    spann:{
+    spann: {
       display: 'flex',
       align: 'center',
-      gap:'10px'
-
+      gap: '10px'
     }
   };
 
   return (
     <div id="receipt" style={styles.receipt}>
       <div style={styles.header}>
-        <img 
+        <img
           src={logo}
-          alt="Company Logo" 
+          alt="Company Logo"
           style={styles.logo}
         />
-         <div style={styles.dividerMain}></div>
+        <div style={styles.dividerMain}></div>
         <h1 style={styles.title}>{type}</h1>
       </div>
-      
+
       <div style={styles.divider}></div>
-      
+
       <div style={styles.customerInfo}>
         <h2 style={styles.customerName}>Customer: {customerName}</h2>
         <p style={styles.date}>Date: {new Date().toLocaleDateString()}</p>
       </div>
-      
+
       <table style={styles.table}>
         <thead>
           <tr>
             <th style={styles.tableHeader}>S. No</th>
             <th style={styles.tableHeader}>Description</th>
             <th style={styles.tableHeader}>Quantity</th>
-            <th style={styles.tableHeader}>Price</th>  
+            <th style={styles.tableHeader}>Price</th>
           </tr>
         </thead>
         <tbody>
-          {products.map((product, index) => (
-            <tr key={product.id}>
+          {products?.map((product, index) => (
+            <tr key={product.id || index}>
               <td style={styles.tableCell}>{index + 1}</td>
               <td style={styles.tableCell}>{product.description}</td>
               <td style={styles.tableCell}>{product.quantity}</td>
@@ -201,13 +236,13 @@ const Receipt = ({ customerName, products ,type }) => {
           ))}
         </tbody>
       </table>
-      
+
       <div style={styles.divider}></div>
-      
+
       <div style={styles.footer}>
         <div style={styles.contactInfo}>
           <Phone style={styles.icon} size={16} />
-          <span style={styles.spann}>Call: 8658899497, 9437884397 | <img style={styles.whataspp} src={WhatsApp}/>: 918752352</span>
+          <span style={styles.spann}>Call: 8658899497, 9437884397 | <img style={styles.whataspp} src={WhatsApp} alt="WhatsApp" />: 918752352</span>
         </div>
         <div style={styles.contactInfo}>
           <MapPin style={styles.icon} size={16} />
@@ -229,4 +264,3 @@ const Receipt = ({ customerName, products ,type }) => {
 };
 
 export default Receipt;
-

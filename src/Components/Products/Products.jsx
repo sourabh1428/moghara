@@ -24,7 +24,7 @@ import {
   CircularProgress,
   FormControl,
   InputLabel,
-  Select,
+  Select,Snackbar,
   MenuItem,
   ButtonGroup,
   Button
@@ -56,6 +56,8 @@ const Products = () => {
   
   const location = useLocation();
   const navigate = useNavigate();
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [checkoutMessage, setCheckoutMessage] = useState('');
 
   const getProductsForCategories = async (category) => {
     try {
@@ -133,6 +135,7 @@ const handleCheckOut = () => {
   document.body.appendChild(receiptDiv);
   console.log("selected category", selectedCategory);
 
+
   const root = createRoot(receiptDiv); // Create a root using React 18 API
 
   if (selectedCategory === 'Plumber') {
@@ -158,6 +161,13 @@ const handleCheckOut = () => {
     root.unmount(); // Correct way to unmount the root in React 18
     document.body.removeChild(receiptDiv); // Remove the receiptDiv from the body
   }, 4000);
+  // Creating the checkout message
+  const message = `Checkout Details:\n` +
+  products.map(product => `${product.description} (Quantity: ${product.quantity})`).join('\n');
+
+// Setting the message and opening the Snackbar
+  setCheckoutMessage(message);
+  setOpenSnackbar(true);
 };
 
   useEffect(() => {
@@ -368,6 +378,12 @@ const handleCheckOut = () => {
               Your cart is empty
             </Typography>
           )}
+           <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        message={<Typography>{"Reciept generated success ✅"}</Typography>}
+      />
         </Box>
       </Drawer>
     </Container>

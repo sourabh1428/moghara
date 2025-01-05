@@ -72,7 +72,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
 const ProductType = () => {
   const [productTypes, setProductTypes] = useState([]);
   const [selectedType, setSelectedType] = useState('');
-  const { customerName, setCustomerName } = useContext(MyContext);
+  const { customerName, setCustomerName ,logged} = useContext(MyContext);
   const [mobileNumber, setMobileNumber] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -100,7 +100,7 @@ const ProductType = () => {
 
   useEffect(() => {
     getCategories();
-    if (!userName) {
+    if (!userName || logged==false) {
       navigate('/login');
     }
   }, [userName, navigate]);

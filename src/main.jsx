@@ -7,6 +7,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import MyProvider from './Context/MyProvider.jsx'
 
+
 const theme = createTheme({
   palette: {
     primary: {

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Box, 
@@ -86,6 +86,11 @@ const{supabaseUser,setSupabaseUser }=useContext(MyContext);
     }
     setOpenSnackbar(false);
   };
+
+  useEffect(()=>{
+    setLogged(false);
+  },[])
+
 
   return (
     <Container component="main" maxWidth="xs">

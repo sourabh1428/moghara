@@ -13,15 +13,8 @@ import MyContext from '../../Context/MyContext'; // Ensure your context is impor
 import { useNavigate } from 'react-router-dom';
 import AddProduct from './AddProduct';
 import ProductManagement from './ProductManagemet.jsx/ProductManagement';
+import AllReciept from './AllReciept';
 
-const AllReceipts = () => {
-  return (
-    <Box sx={{ padding: 1 }}>
-      <Typography variant="h6">All Receipts</Typography>
-      <Typography variant="body1">All receipts content goes here.</Typography>
-    </Box>
-  );
-};
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -61,7 +54,7 @@ const Settings = () => {
           </Tabs>
 
           <Box sx={{ marginTop: 2 }}>
-            {activeTab === 0 && <AllReceipts />}
+            {activeTab === 0 && <AllReciept />}
             {activeTab === 1 && <Team />}
             {activeTab === 2 && <ProductManagement />}
           </Box>
