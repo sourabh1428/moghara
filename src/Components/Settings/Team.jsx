@@ -146,9 +146,7 @@ const Team = () => {
 
   return (
     <Container maxWidth="md">
-      <Typography variant="h4" align="center" gutterBottom>
-        Team Management
-      </Typography>
+    
 
       {/* Add User Section */}
       <Card sx={{ marginBottom: 3 }}>

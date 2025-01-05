@@ -14,10 +14,7 @@ const ProductManagement = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom color="primary" sx={{ mb: 4 }}>
-          Product Management
-        </Typography>
-        
+      
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="product management tabs">
             <Tab label="Add Products" />
