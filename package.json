@@ -16,6 +16,7 @@
     "@mui/material": "^6.3.0",
     "@supabase/supabase-js": "^2.47.10",
     "@vercel/analytics": "^1.4.1",
+    "@vercel/speed-insights": "^1.1.0",
     "bibhuti": "file:",
     "html2pdf.js": "^0.10.2",
     "lucide-react": "^0.469.0",
