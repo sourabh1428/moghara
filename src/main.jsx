@@ -6,7 +6,8 @@ import { BrowserRouter } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import MyProvider from './Context/MyProvider.jsx'
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 const theme = createTheme({
   palette: {
@@ -27,7 +28,8 @@ createRoot(document.getElementById('root')).render(
     <ThemeProvider theme={theme}>
       
     <MyProvider>
-      
+      <Analytics/>
+      <SpeedInsights />
     <App />
   </MyProvider>
     </ThemeProvider>
