@@ -36,13 +36,27 @@ const printStyles = `
 const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" }) => {
   const contextValue = useContext(MyContext);
   const userName = contextValue?.userName || "Admin";
-  const ITEMS_PER_PAGE = 15;
-
+  const ITEMS_FIRST_PAGE = 15;
+  const ITEMS_OTHER_PAGES = 30;
   const splitIntoPages = (items) => {
     if (!items?.length) return [];
-    return Array.from({ length: Math.ceil(items.length / ITEMS_PER_PAGE) }, (_, i) =>
-      items.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
-    );
+
+    const pages = [];
+    let remainingItems = [...items];
+
+    // Handle first page
+    if (remainingItems.length > 0) {
+      pages.push(remainingItems.slice(0, ITEMS_FIRST_PAGE));
+      remainingItems = remainingItems.slice(ITEMS_FIRST_PAGE);
+    }
+
+    // Handle subsequent pages
+    while (remainingItems.length > 0) {
+      pages.push(remainingItems.slice(0, ITEMS_OTHER_PAGES));
+      remainingItems = remainingItems.slice(ITEMS_OTHER_PAGES);
+    }
+
+    return pages;
   };
 
   const generatePDF = async () => {
@@ -93,10 +107,10 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
         .from('reciepts')
         .getPublicUrl(filePath);
 
-      // Save to Receipts table
+      // Save to database
       await saveToDatabase(publicUrl);
 
-      // Also save as local file
+      // Save as local file
       const url = URL.createObjectURL(pdf);
       const link = document.createElement('a');
       link.href = url;
@@ -141,6 +155,7 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       generatePDF();
     }
   }, [customerName, products]);
+
   const styles = {
     container: {
       fontFamily: "Arial, sans-serif",
@@ -204,18 +219,18 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       padding: "5px",
       border: "1px solid black",
       color: "#333",
+      fontSize: "8 px",
     },
     footer: {
       position: "absolute",
-      bottom: "20mm", // Adjust as needed
-      left: "50%", // Align to the horizontal center of the page
-      transform: "translateX(-50%)", // Correct centering by moving it back by 50% of its width
+      bottom: "20mm",
+      left: "50%",
+      transform: "translateX(-50%)",
       textAlign: "center",
       borderTop: "1px solid #eee",
       padding: "20px",
-      width: "calc(100% - 40mm)", // To ensure the footer does not overlap content on the sides
+      width: "calc(100% - 40mm)",
     },
-    
     contactInfo: {
       display: "flex",
       alignItems: "center",
@@ -247,6 +262,13 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       <img src={logo} alt="Company Logo" style={styles.logo} />
       <div style={styles.mainDivider} />
       <h1 style={styles.title}>{type}</h1>
+    </div>
+  );
+
+  const CustomerInfo = () => (
+    <div style={styles.customerInfo}>
+      <h2 style={styles.customerName}>Customer: {customerName}</h2>
+      <p>Date: {new Date().toLocaleDateString()}</p>
     </div>
   );
 
@@ -304,13 +326,17 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
     <div id="receipt-container" style={styles.container}>
       {pages.map((pageItems, pageIndex) => (
         <div key={pageIndex} style={styles.page} className="page">
-          <Header />
-          <div style={styles.customerInfo}>
-            <h2 style={styles.customerName}>Customer: {customerName}</h2>
-            <p>Date: {new Date().toLocaleDateString()}</p>
-          </div>
-          <ProductTable items={pageItems} startIndex={pageIndex * ITEMS_PER_PAGE} />
-          <Footer />
+          {pageIndex === 0 && (
+            <>
+              <Header />
+              <CustomerInfo />
+            </>
+          )}
+          <ProductTable
+            items={pageItems}
+            startIndex={pageIndex === 0 ? 0 : ITEMS_FIRST_PAGE + (pageIndex - 1) * ITEMS_OTHER_PAGES}
+          />
+          {pageIndex === 0 && <Footer />}
         </div>
       ))}
     </div>
