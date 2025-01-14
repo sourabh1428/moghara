@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
 import { Mail, Globe, Phone, MapPin } from 'lucide-react';
 import logo from '../../assets/Header.png';
@@ -6,259 +6,256 @@ import WhatsApp from '../../assets/whatsapp.svg';
 import { supabase } from '../../Supabase';
 import MyContext from '../../Context/MyContext';
 
-const Receipt = ({ customerName, products, type }) => {
-  const [cat, setCat] = useState('');
-  // Add error handling for context
+// CSS styles for print media
+const printStyles = `
+@media print {
+  .page {
+    page-break-after: auto;
+    page-break-inside: avoid;
+    page-break-before: auto;
+    margin: 0;
+  }
+  table {
+    page-break-inside: avoid;
+  }
+}
+`;
+
+const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" }) => {
   const contextValue = useContext(MyContext);
-  const userName = contextValue?.userName || 'Admin';
+  const userName = contextValue?.userName || "Admin";
+  const ITEMS_PER_PAGE = 10;
 
-  const generateAndUploadPDF = async () => {
+  const splitIntoPages = (items) => {
+    if (!items?.length) return [];
+    return Array.from({ length: Math.ceil(items.length / ITEMS_PER_PAGE) }, (_, i) =>
+      items.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
+    );
+  };
+
+  const generatePDF = async () => {
     try {
-      const element = document.getElementById('receipt');
-      if (!element) {
-        console.error('Receipt element not found');
-        return;
-      }
+      const styleSheet = document.createElement("style");
+      styleSheet.type = "text/css";
+      styleSheet.innerText = printStyles;
+      document.head.appendChild(styleSheet);
 
-      const opt = {
-        margin: 10,
+      const element = document.getElementById("receipt-container");
+      if (!element) return;
+
+      const options = {
+        margin: 0,
         filename: `receipt-${customerName}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       };
 
-      const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
+      await html2pdf().from(element).set(options).save();
 
-      // Trigger download
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.download = `receipt-${customerName}.pdf`;
-      link.click();
-
-      // Upload the PDF to Supabase
-      const fileName = `receipt-${customerName}-${Date.now()}.pdf`;
-      const { data, error } = await supabase.storage
-        .from('reciepts')
-        .upload(fileName, pdfBlob, {
-          contentType: 'application/pdf',
-        });
-
-      if (error) {
-        console.error('Error uploading PDF to Supabase:', error.message);
-        return;
-      }
-
-      const response = await supabase.storage
-        .from('reciepts')
-        .getPublicUrl(data.path);
-
-      await insertIntoTable(response.data.publicUrl);
-      
-      URL.revokeObjectURL(pdfUrl); // Clean up
+      document.head.removeChild(styleSheet);
     } catch (error) {
-      console.error('Error generating/uploading PDF:', error);
+      console.error("PDF Generation Error:", error);
     }
   };
 
-  const insertIntoTable = async (publicUrl) => {
+  const saveToDatabase = async (publicUrl) => {
     try {
-      const { data, error } = await supabase
-        .from('Receipts')
+      await supabase
+        .from("Receipts")
         .insert([
-          { 
-            Customer: customerName, 
+          {
+            Customer: customerName,
             Createdby: userName,
-            url: publicUrl 
-          }
+            url: publicUrl,
+          },
         ])
         .select();
-
-      if (error) throw error;
-      console.log("inserted to table: ", data);
     } catch (error) {
-      console.error("Error inserting into table:", error);
+      console.error("Database Error:", error);
     }
   };
 
   useEffect(() => {
-    if (customerName) {
-      generateAndUploadPDF();
+    if (customerName && products?.length > 0) {
+      generatePDF();
     }
-  }, [customerName]);
+  }, [customerName, products]);
 
   const styles = {
-    receipt: {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '14px',
-      lineHeight: '1.5',
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '32px',
-      backgroundColor: '#ffffff',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      borderRadius: '8px',
+    container: {
+      fontFamily: "Arial, sans-serif",
+      fontSize: "14px",
+      lineHeight: "1.5",
+      backgroundColor: "#fff",
+      width: "210mm",
+      margin: "0 auto",
     },
-    header: {
-      textAlign: 'center',
-      marginBottom: '24px',
+    page: {
+      padding: "20mm",
+      boxSizing: "border-box",
+      backgroundColor: "#fff",
+      minHeight: "297mm",
+      display: "flex",
+      flexDirection: "column",
+    },
+    headerContainer: {
+      marginBottom: "30px",
+      textAlign: "center",
     },
     logo: {
-      maxWidth: '100%',
-      marginTop: '-50px'
+      maxWidth: "100%",
+      height: "80px",
+      objectFit: "contain",
+    },
+    mainDivider: {
+      borderTop: "8px solid #5e5e5e",
+      margin: "15px 0",
     },
     title: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: '#333333',
-      marginBottom: '8px',
-    },
-    dividerMain: {
-      borderTop: '8px solid rgb(94, 94, 94)',
-      margin: '30px',
-    },
-    divider: {
-      borderTop: '1px solid rgb(0, 0, 0)',
-      margin: '24px 0',
+      fontSize: "24px",
+      fontWeight: "bold",
+      color: "#333",
+      margin: "10px 0",
     },
     customerInfo: {
-      marginBottom: '24px',
+      marginBottom: "20px",
     },
     customerName: {
-      fontSize: '18px',
-      fontWeight: 'bold',
-      color: 'red',
-      marginBottom: '4px',
+      fontSize: "18px",
+      fontWeight: "bold",
+      color: "red",
+      marginBottom: "5px",
     },
-    date: {
-      fontSize: '14px',
-      color: '#666666',
+    contentWrapper: {
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
     },
     table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-      marginBottom: '24px',
-      borderLeft: "2px solid black",
-      borderTop: "2px solid black",
-      borderRight: '2px solid rgb(0, 0, 0)',
+      width: "100%",
+      borderCollapse: "collapse",
+      marginBottom: "30px",
     },
-    tableHeader: {
-      backgroundColor: '#f8f8f8',
-      fontWeight: 'bold',
-      color: 'skyblue',
-      textAlign: 'left',
-      padding: '12px',
-      borderRight: '2px solid rgb(0, 0, 0)',
-      borderBottom: '2px solid rgb(0, 0, 0)',
+    th: {
+      backgroundColor: "#f8f8f8",
+      color: "skyblue",
+      padding: "12px",
+      border: "2px solid black",
+      textAlign: "left",
+      fontWeight: "bold",
     },
-    tableCell: {
-      padding: '12px',
-      borderRight: '1px solid rgb(0, 0, 0)',
-      borderBottom: '1px solid rgb(0, 0, 0)',
-      color: '#333333',
+    td: {
+      padding: "12px",
+      border: "1px solid black",
+      color: "#333",
     },
     footer: {
-      textAlign: 'center',
-      color: '#666666',
-      fontSize: '14px',
+      borderTop: "1px solid #eee",
+      padding: "20px 0",
+      textAlign: "center",
+      marginTop: "auto",
     },
     contactInfo: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: '8px',
-    },
-    icon: {
-      marginRight: '8px',
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "8px",
+      marginBottom: "8px",
     },
     links: {
-      display: 'flex',
-      justifyContent: 'center',
-      marginTop: '16px',
+      display: "flex",
+      justifyContent: "center",
+      gap: "16px",
+      marginTop: "16px",
     },
     link: {
-      color: '#0066cc',
-      textDecoration: 'none',
-      display: 'flex',
-      alignItems: 'center',
-      marginRight: '16px',
+      color: "#0066cc",
+      textDecoration: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
     },
-    whataspp: {
-      marginLeft: '10px',
-      height: '20px',
-      width: '20px',
-      fill: '#4caf50'
+    whatsapp: {
+      height: "20px",
+      width: "20px",
     },
-    spann: {
-      display: 'flex',
-      align: 'center',
-      gap: '10px'
-    }
   };
 
-  return (
-    <div id="receipt" style={styles.receipt}>
-      <div style={styles.header}>
-        <img
-          src={logo}
-          alt="Company Logo"
-          style={styles.logo}
-        />
-        <div style={styles.dividerMain}></div>
-        <h1 style={styles.title}>{type}</h1>
-      </div>
+  const Header = () => (
+    <div style={styles.headerContainer}>
+      <img src={logo} alt="Company Logo" style={styles.logo} />
+      <div style={styles.mainDivider} />
+      <h1 style={styles.title}>{type}</h1>
+    </div>
+  );
 
-      <div style={styles.divider}></div>
-
-      <div style={styles.customerInfo}>
-        <h2 style={styles.customerName}>Customer: {customerName}</h2>
-        <p style={styles.date}>Date: {new Date().toLocaleDateString()}</p>
-      </div>
-
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.tableHeader}>S. No</th>
-            <th style={styles.tableHeader}>Description</th>
-            <th style={styles.tableHeader}>Quantity</th>
-            <th style={styles.tableHeader}>Price</th>
+  const ProductTable = ({ items, startIndex }) => (
+    <table style={styles.table}>
+      <thead>
+        <tr>
+          <th style={styles.th}>S. No</th>
+          <th style={styles.th}>Description</th>
+          <th style={styles.th}>Quantity</th>
+          <th style={styles.th}>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((item, idx) => (
+          <tr key={item.id || idx}>
+            <td style={styles.td}>{startIndex + idx + 1}</td>
+            <td style={styles.td}>{item.description}</td>
+            <td style={styles.td}>{item.quantity}</td>
+            <td style={styles.td}>{item.price}</td>
           </tr>
-        </thead>
-        <tbody>
-          {products?.map((product, index) => (
-            <tr key={product.id || index}>
-              <td style={styles.tableCell}>{index + 1}</td>
-              <td style={styles.tableCell}>{product.description}</td>
-              <td style={styles.tableCell}>{product.quantity}</td>
-              <td style={styles.tableCell}></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        ))}
+      </tbody>
+    </table>
+  );
 
-      <div style={styles.divider}></div>
-
-      <div style={styles.footer}>
-        <div style={styles.contactInfo}>
-          <Phone style={styles.icon} size={16} />
-          <span style={styles.spann}>Call: 8658899497, 9437884397 | <img style={styles.whataspp} src={WhatsApp} alt="WhatsApp" />: 918752352</span>
-        </div>
-        <div style={styles.contactInfo}>
-          <MapPin style={styles.icon} size={16} />
-          <span>Lucky Complex, 1st floor, Panikolli, Jajpur, Odisha. (755043)</span>
-        </div>
-        <div style={styles.links}>
-          <a href="mailto:mogharaservies@gmail.com" style={styles.link}>
-            <Mail style={styles.icon} size={16} />
-            mogharaservies@gmail.com
-          </a>
-          <a href="https://moghara.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
-            <Globe style={styles.icon} size={16} />
-            moghara.com
-          </a>
-        </div>
+  const Footer = () => (
+    <div style={styles.footer}>
+      <div style={styles.contactInfo}>
+        <Phone size={16} />
+        <span>Call: 8658899497, 9437884397</span>
+        <img src={WhatsApp} alt="WhatsApp" style={styles.whatsapp} />
+        <span>918752352</span>
       </div>
+      <div style={styles.contactInfo}>
+        <MapPin size={16} />
+        <span>Lucky Complex, 1st floor, Panikolli, Jajpur, Odisha. (755043)</span>
+      </div>
+      <div style={styles.links}>
+        <a href="mailto:mogharaservies@gmail.com" style={styles.link}>
+          <Mail size={16} />mogharaservies@gmail.com
+        </a>
+        <a href="https://moghara.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
+          <Globe size={16} />moghara.com
+        </a>
+      </div>
+    </div>
+  );
+
+  const pages = splitIntoPages(products);
+
+  if (!products?.length) return null;
+
+  return (
+    <div id="receipt-container" style={styles.container}>
+      {pages.map((pageItems, pageIndex) => (
+        <div key={pageIndex} style={styles.page} className="page">
+          <Header />
+          <div style={styles.customerInfo}>
+            <h2 style={styles.customerName}>Customer: {customerName}</h2>
+            <p>Date: {new Date().toLocaleDateString()}</p>
+          </div>
+          <div style={styles.contentWrapper}>
+            <ProductTable items={pageItems} startIndex={pageIndex * ITEMS_PER_PAGE} />
+            <Footer />
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
