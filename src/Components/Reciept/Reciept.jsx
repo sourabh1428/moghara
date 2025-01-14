@@ -51,7 +51,7 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       if (!element) return;
 
       const options = {
-        margin: [],
+        margin: [0,0,0,0],
         filename: `receipt-${customerName}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { 
