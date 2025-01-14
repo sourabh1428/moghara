@@ -18,6 +18,18 @@ const printStyles = `
   table {
     page-break-inside: avoid;
   }
+  .header, .footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    padding: 20px;
+  }
+  .header {
+    top: 0;
+  }
+  .footer {
+    bottom: 0;
+  }
 }
 `;
 
@@ -35,26 +47,65 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
 
   const generatePDF = async () => {
     try {
-      const styleSheet = document.createElement("style");
-      styleSheet.type = "text/css";
-      styleSheet.innerText = printStyles;
-      document.head.appendChild(styleSheet);
-
       const element = document.getElementById("receipt-container");
       if (!element) return;
 
       const options = {
-        margin: 0,
+        margin: [],
         filename: `receipt-${customerName}.pdf`,
-        image: { type: "jpeg", quality: 1 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          scrollY: 0,
+          windowWidth: 794, // A4 width in pixels
+          windowHeight: 1123 // A4 height in pixels
+        },
+        jsPDF: { 
+          unit: "mm", 
+          format: "a4", 
+          orientation: "portrait",
+          compress: true
+        }
       };
 
-      await html2pdf().from(element).set(options).save();
+      // Generate PDF as blob
+      const pdf = await html2pdf().from(element).set(options).outputPdf('blob');
+      
+      // Upload to Supabase Storage
+      const timestamp = new Date().getTime();
+      const filePath = `${customerName}-${timestamp}.pdf`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('reciepts')
+        .upload(filePath, pdf, {
+          contentType: 'application/pdf',
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      document.head.removeChild(styleSheet);
+      if (uploadError) {
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('reciepts')
+        .getPublicUrl(filePath);
+
+      // Save to Receipts table
+      await saveToDatabase(publicUrl);
+
+      // Also save as local file
+      const url = URL.createObjectURL(pdf);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `receipt-${customerName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
     } catch (error) {
       console.error("PDF Generation Error:", error);
     }
@@ -62,18 +113,26 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
 
   const saveToDatabase = async (publicUrl) => {
     try {
-      await supabase
+      const { data, error } = await supabase
         .from("Receipts")
         .insert([
           {
             Customer: customerName,
             Createdby: userName,
             url: publicUrl,
+            created_at: new Date().toISOString()
           },
         ])
         .select();
+
+      if (error) {
+        throw new Error(`Database insert failed: ${error.message}`);
+      }
+
+      return data;
     } catch (error) {
       console.error("Database Error:", error);
+      throw error;
     }
   };
 
@@ -82,7 +141,6 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       generatePDF();
     }
   }, [customerName, products]);
-
   const styles = {
     container: {
       fontFamily: "Arial, sans-serif",
@@ -91,14 +149,15 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       backgroundColor: "#fff",
       width: "210mm",
       margin: "0 auto",
+      position: "relative",
     },
     page: {
       padding: "20mm",
       boxSizing: "border-box",
       backgroundColor: "#fff",
-      minHeight: "297mm",
-      display: "flex",
-      flexDirection: "column",
+      height: "297mm",
+      position: "relative",
+      overflow: "hidden",
     },
     headerContainer: {
       marginBottom: "30px",
@@ -127,11 +186,6 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       fontWeight: "bold",
       color: "red",
       marginBottom: "5px",
-    },
-    contentWrapper: {
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
     },
     table: {
       width: "100%",
@@ -250,10 +304,8 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
             <h2 style={styles.customerName}>Customer: {customerName}</h2>
             <p>Date: {new Date().toLocaleDateString()}</p>
           </div>
-          <div style={styles.contentWrapper}>
-            <ProductTable items={pageItems} startIndex={pageIndex * ITEMS_PER_PAGE} />
-            <Footer />
-          </div>
+          <ProductTable items={pageItems} startIndex={pageIndex * ITEMS_PER_PAGE} />
+          <Footer />
         </div>
       ))}
     </div>
