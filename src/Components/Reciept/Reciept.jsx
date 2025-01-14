@@ -36,7 +36,7 @@ const printStyles = `
 const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" }) => {
   const contextValue = useContext(MyContext);
   const userName = contextValue?.userName || "Admin";
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 15;
 
   const splitIntoPages = (items) => {
     if (!items?.length) return [];
@@ -201,16 +201,21 @@ const Receipt = ({ customerName = "Customer", products = [], type = "Receipt" })
       fontWeight: "bold",
     },
     td: {
-      padding: "12px",
+      padding: "5px",
       border: "1px solid black",
       color: "#333",
     },
     footer: {
-      borderTop: "1px solid #eee",
-      padding: "20px 0",
+      position: "absolute",
+      bottom: "20mm", // Adjust as needed
+      left: "50%", // Align to the horizontal center of the page
+      transform: "translateX(-50%)", // Correct centering by moving it back by 50% of its width
       textAlign: "center",
-      marginTop: "auto",
+      borderTop: "1px solid #eee",
+      padding: "20px",
+      width: "calc(100% - 40mm)", // To ensure the footer does not overlap content on the sides
     },
+    
     contactInfo: {
       display: "flex",
       alignItems: "center",
